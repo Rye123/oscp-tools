@@ -34,7 +34,7 @@ if __name__ == "__main__":
     from pathlib import Path
     from lib.prog import *
     prog = Prog(
-        "gen_win_malware_cmd",
+        "gen_win_exe_cmd",
         "Generates a Windows executable that runs shell commands. Default is to create a 32-bit executable to add a new administrator \"potatomonster\" with password \"potato\"", [
             Arg(ArgType.OPTIONAL_VAL, "arch", "a", arg_val_type=str, arg_help="Architecture. x32 for 32-bit, x64 for 64-bit."),
             Arg(ArgType.OPTIONAL_VAL, "commands", "c", arg_val_type=str, arg_help="Batch commands, separated by semicolons."),
@@ -76,7 +76,9 @@ if __name__ == "__main__":
     source_p.write_text(c_src)
 
     # Generate executable
-    exe_p = Path(f"./{outfile}")
+    out_dir = Path(f"./http/windows")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    exe_p = out_dir.joinpath(outfile)
     exe_p.touch()
 
     result = subprocess.run(

@@ -48,7 +48,7 @@ if __name__ == "__main__":
     from pathlib import Path
     from lib.prog import *
     prog = Prog(
-        "gen_win_rshell",
+        "gen_win_exe_rshell",
         "Generates a Windows reverse shell. Creates it in 32-bit by default.", [
             Arg(ArgType.POSITIONAL, "ip", arg_val_type=str, arg_help="client IP"),
             Arg(ArgType.POSITIONAL, "port", arg_val_type=int, arg_help="client port"),
@@ -86,7 +86,9 @@ if __name__ == "__main__":
     source_p.write_text(c_src)
 
     # Generate executable
-    exe_p = Path(f"./{outfile}")
+    out_dir = Path(f"./http/windows")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    exe_p = out_dir.joinpath(outfile)
     exe_p.touch()
 
     result = subprocess.run(

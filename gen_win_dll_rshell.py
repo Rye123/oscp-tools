@@ -94,7 +94,9 @@ if __name__ == "__main__":
     source_p.write_text(c_src)
 
     # Generate executable
-    exe_p = Path(f"./{outfile}")
+    out_dir = Path(f"./http/windows")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    exe_p = out_dir.joinpath(outfile)
     exe_p.touch()
 
     result = subprocess.run(
